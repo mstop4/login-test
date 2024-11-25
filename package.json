@@ -15,16 +15,22 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "crypto": "^1.0.1",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^4.21.1",
-    "morgan": "^1.10.0"
+    "mongoose": "^8.8.2",
+    "morgan": "^1.10.0",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
     "@types/express": "^5.0.0",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.9.3",
+    "@types/passport": "^1.0.17",
+    "@types/passport-local": "^1.0.38",
     "@typescript-eslint/eslint-plugin": "^8.15.0",
     "@typescript-eslint/parser": "^8.15.0",
     "eslint": "^9.15.0",
