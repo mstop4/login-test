@@ -7,14 +7,12 @@ import { User } from '../db/schemas/User';
 const router = Router();
 
 passport.use(
-  new LocalStrategy(async (username, password, cb) => {
+  new LocalStrategy(async (email, password, cb) => {
     try {
-      console.log('Log in');
-      const user = await User.findOne({ username }).exec();
+      const user = await User.findOne({ email }).exec();
 
       if (!user) {
-        console.log('User not found');
-        return cb(null, false, { message: 'Incorrect username or password.' });
+        return cb(null, false, { message: 'Incorrect email or password.' });
       }
 
       crypto.pbkdf2(
@@ -34,13 +32,11 @@ passport.use(
               hashedPassword,
             )
           ) {
-            console.log('Password incorrect');
             return cb(null, false, {
-              message: 'Incorrect username or password.',
+              message: 'Incorrect email or password.',
             });
           }
 
-          console.log('OK');
           return cb(null, user);
         },
       );
@@ -49,6 +45,45 @@ passport.use(
     }
   }),
 );
+
+router.get('/signup', (req, res) => res.render('signup'));
+router.post('/signup', (req, res, next) => {
+  const salt = crypto.randomBytes(16);
+
+  crypto.pbkdf2(
+    req.body.password,
+    salt,
+    310000,
+    32,
+    'sha256',
+    async (err, hashedPassword) => {
+      if (err) return next(err);
+
+      const hashString = hashedPassword.toString('hex');
+      const saltString = salt.toString('hex');
+
+      const newUser = new User({
+        email: req.body.email,
+        salt: saltString,
+        hash: hashString,
+      });
+
+      try {
+        const created = await newUser.save();
+        const user = {
+          id: created.id,
+          email: req.body.email,
+        };
+        req.login(user, err => {
+          if (err) return next(err);
+          res.redirect('/');
+        });
+      } catch (err) {
+        return next(err);
+      }
+    },
+  );
+});
 
 router.get('/login', (req, res) => res.render('login'));
 router.post(
