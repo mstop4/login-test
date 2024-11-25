@@ -19,43 +19,50 @@ passport.deserializeUser((user: Express.User, cb) => {
 });
 
 passport.use(
-  new LocalStrategy(async (email, password, cb) => {
-    try {
-      const user = await User.findOne({ email }).exec();
+  new LocalStrategy(
+    { usernameField: 'email', passwordField: 'password' }, // Specify custom fields
+    async (email, password, cb) => {
+      try {
+        const user = await User.findOne({ email }).exec();
 
-      if (!user) {
-        return cb(null, false, { message: 'Incorrect email or password.' });
-      }
+        if (!user) {
+          return cb(null, false, { message: 'Incorrect email or password.' });
+        }
 
-      crypto.pbkdf2(
-        password,
-        user.salt,
-        310000,
-        32,
-        'sha256',
-        (err, hashedPassword) => {
-          if (err) {
-            return cb(err);
-          }
+        crypto.pbkdf2(
+          password,
+          Buffer.from(user.salt, 'hex'),
+          310000,
+          32,
+          'sha256',
+          (err, hashedPassword) => {
+            if (err) {
+              return cb(err, false, { message: 'Hash error' });
+            }
 
-          if (
-            !crypto.timingSafeEqual(
-              Buffer.from(user.hash, 'hex'),
-              hashedPassword,
-            )
-          ) {
-            return cb(null, false, {
-              message: 'Incorrect email or password.',
+            if (
+              !crypto.timingSafeEqual(
+                Buffer.from(user.hash, 'hex'),
+                hashedPassword,
+              )
+            ) {
+              return cb(null, false, {
+                message: 'Incorrect email or password.',
+              });
+            }
+
+            return cb(null, user, {
+              message: 'OK.',
             });
-          }
-
-          return cb(null, user);
-        },
-      );
-    } catch (err) {
-      return cb(err);
-    }
-  }),
+          },
+        );
+      } catch (err) {
+        return cb(err, false, {
+          message: 'Server Error',
+        });
+      }
+    },
+  ),
 );
 
 router.get('/signup', (req, res) => res.render('signup'));
@@ -93,15 +100,35 @@ router.post('/signup', (req, res, next) => {
   );
 });
 
-router.get('/login', (req, res) => res.render('login'));
+router.get('/login', (req, res) => {
+  console.log(req.flash('message'));
+  res.render('login');
+});
 router.post(
   '/login/password',
   passport.authenticate('local', {
     successRedirect: '/userPage',
     failureRedirect: '/no',
+    successFlash: true,
+    failureFlash: true,
   }),
 );
-router.get('/userPage', (req, res) => res.render('userPage'));
-router.get('/no', (req, res) => res.render('no'));
+router.post('/logout', (req, res, next) => {
+  req.logout(err => {
+    if (err) {
+      return next(err);
+    }
+    res.redirect('/');
+  });
+});
+router.get('/userPage', (req, res) => {
+  console.log(req.flash('message'));
+  console.log(req.session);
+  return res.render('userPage');
+});
+router.get('/no', (req, res) => {
+  console.log(req.flash('message'));
+  res.render('no', { message: req.flash('message') });
+});
 
 export default router;

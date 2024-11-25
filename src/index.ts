@@ -1,3 +1,4 @@
+import path from 'path';
 import express, { Express } from 'express';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
@@ -6,7 +7,7 @@ import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import MongoStore from 'connect-mongo';
 import passport from 'passport';
-import path from 'path';
+import flash from 'connect-flash';
 import { connectToDB } from './db';
 import indexRouter from './routes/index';
 import authRouter from './routes/auth';
@@ -27,8 +28,8 @@ app.use(
     parameterLimit: 100000000000,
   }),
 );
-app.use(passport.initialize());
 app.use(cookieParser());
+app.use(passport.initialize());
 
 connectToDB();
 app.use(
@@ -42,6 +43,7 @@ app.use(
   }),
 );
 app.use(passport.authenticate('session'));
+app.use(flash());
 
 app.use('/', indexRouter);
 app.use('/', authRouter);
