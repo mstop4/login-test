@@ -6,7 +6,9 @@
 		<title>User Page</title>
   </head>
   <body>
-    <h1>Yes</h1>
+    <h1>User Page</h1>
+    <p>Name: <%= user.username %></p>
+    <p>Email: <%= user.email %></p>
     <form action="/logout" method="post">
       <button class="logout" type="submit">Log out</button>
     </form>
