@@ -8,7 +8,7 @@ export default [
     files: ['**/*.{js,mjs,cjs,ts}'],
   },
   {
-    ignores: ["**/dist/"],
+    ignores: ['**/dist/'],
   },
   { languageOptions: { globals: globals.node } },
   pluginJs.configs.recommended,
