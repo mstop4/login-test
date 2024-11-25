@@ -1,11 +1,19 @@
-import type { Document } from 'mongoose';
+import 'express';
+import type { ObjectId } from 'mongoose';
 import { Schema, model } from 'mongoose';
 
-export interface IUser extends Document {
+export interface IUser {
+  id: ObjectId;
   username: string;
   email: string;
   salt: string;
   hash: string;
+}
+
+declare global {
+  namespace Express {
+    interface User extends IUser {}
+  }
 }
 
 const userSchema = new Schema<IUser>({

@@ -2,6 +2,9 @@ import express, { Express } from 'express';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
+import session from 'express-session';
+import MongoStore from 'connect-mongo';
 import passport from 'passport';
 import path from 'path';
 import { connectToDB } from './db';
@@ -25,11 +28,23 @@ app.use(
   }),
 );
 app.use(passport.initialize());
+app.use(cookieParser());
+
+connectToDB();
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET as string,
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGODB_URL,
+    }),
+  }),
+);
+app.use(passport.authenticate('session'));
 
 app.use('/', indexRouter);
 app.use('/', authRouter);
-
-connectToDB();
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);

@@ -6,6 +6,18 @@ import { User } from '../db/schemas/User';
 
 const router = Router();
 
+passport.serializeUser((user, cb) => {
+  process.nextTick(() => {
+    cb(null, { id: user.id, email: user.email });
+  });
+});
+
+passport.deserializeUser((user: Express.User, cb) => {
+  process.nextTick(() => {
+    return cb(null, user);
+  });
+});
+
 passport.use(
   new LocalStrategy(async (email, password, cb) => {
     try {
@@ -69,14 +81,10 @@ router.post('/signup', (req, res, next) => {
       });
 
       try {
-        const created = await newUser.save();
-        const user = {
-          id: created.id,
-          email: req.body.email,
-        };
-        req.login(user, err => {
+        await newUser.save();
+        req.login(newUser, err => {
           if (err) return next(err);
-          res.redirect('/');
+          res.redirect('/userPage');
         });
       } catch (err) {
         return next(err);
@@ -89,10 +97,11 @@ router.get('/login', (req, res) => res.render('login'));
 router.post(
   '/login/password',
   passport.authenticate('local', {
-    successRedirect: '/',
+    successRedirect: '/userPage',
     failureRedirect: '/no',
   }),
 );
+router.get('/userPage', (req, res) => res.render('userPage'));
 router.get('/no', (req, res) => res.render('no'));
 
 export default router;
