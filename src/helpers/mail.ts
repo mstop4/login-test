@@ -16,12 +16,10 @@ export const createMailTransporter = () => {
     debug: true,
   };
 
-  console.log(transportOptions);
-
   transporter = createTransport(transportOptions);
 };
 
-export const sendEmail = (mailOptions: MailOptions) => {
+export const sendVerificationEmail = (mailOptions: MailOptions) => {
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       console.log(`Error: ${error}`);

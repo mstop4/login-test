@@ -8,6 +8,7 @@ export interface IUser {
   email: string;
   salt: string;
   hash: string;
+  verificationToken: string;
   verified: boolean;
 }
 
@@ -35,6 +36,9 @@ const userSchema = new Schema<IUser>({
   hash: {
     type: String,
     required: true,
+  },
+  verificationToken: {
+    type: String,
   },
   verified: {
     type: Boolean,
