@@ -1,12 +1,34 @@
+<script>
+  function validatePassword() {
+    var passwordValue = document.getElementById("new-password").value;
+    var confirmElem = document.getElementById("password-confirm");
+    var confirmValue = confirmElem.value;
+
+    if (passwordValue !== confirmValue) {
+      confirmElem.setCustomValidity("Passwords must match");
+    } else {
+      confirmElem.setCustomValidity("");
+    }
+  }
+</script>
+
 <h1>Sign up</h1>
 <form action="/signup" method="post">
   <section>
+    <label for="username">Username</label>
+    <input id="username" name="username" type="text" autocomplete="off" required>
+  </section>
+  <section>
     <label for="email">Email</label>
-    <input id="email" name="email" type="email" autocomplete="username" required>
+    <input id="email" name="email" type="email" autocomplete="off" required>
   </section>
   <section>
     <label for="new-password">Password</label>
-    <input id="new-password" name="password" type="password" autocomplete="new-password" required>
+    <input id="new-password" name="password" type="password" autocomplete="off" required>
   </section>
-  <button type="submit">Sign up</button>
+  <section>
+    <label for="password-confirm">Confirm Password</label>
+    <input id="password-confirm" name="passwordConfirm" type="password" autocomplete="off" required>
+  </section>
+  <button type="submit" onclick="validatePassword()">Sign up</button>
 </form>

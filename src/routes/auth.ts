@@ -86,6 +86,7 @@ router.post('/signup', (req, res, next) => {
       const verificationToken = crypto.randomBytes(16).toString('hex');
 
       const newUser = new User({
+        username: req.body.username,
         email: req.body.email,
         salt: saltString,
         hash: hashString,
@@ -99,16 +100,12 @@ router.post('/signup', (req, res, next) => {
           from: `"Login Test" ${process.env.EMAIL_FROM}`,
           to: req.body.email,
           subject: 'Verify your account',
-          text: `Click on the link to verify your account: ${process.env.BASE_URL}/verifyAccount?token=${verificationToken}\n\nIf you believe you received this email by mistake, please ignore it.`,
-          html: `<p>Click on the link below to verify your account:</p><p><a href="${process.env.BASE_URL}/verifyAccount?token=${verificationToken}">Verify your account</a></p><p>If you believe you received this email by mistake, please ignore it.</p>`,
+          text: `Hello ${req.body.username}!\n\nClick on the link to verify your account: ${process.env.BASE_URL}/verifyAccount?token=${verificationToken}\n\nIf you believe you received this email by mistake, please ignore it.`,
+          html: `<p>Hello ${req.body.username}!</p><p>Click on the link below to verify your account:</p><p><a href="${process.env.BASE_URL}/verifyAccount?token=${verificationToken}">Verify your account</a></p><p>If you believe you received this email by mistake, please ignore it.</p>`,
         } as MailOptions;
 
         sendVerificationEmail(mailOptions);
-
-        req.login(newUser, err => {
-          if (err) return next(err);
-          res.redirect('/accountCreated');
-        });
+        res.redirect('/accountCreated');
       } catch (err) {
         return next(err);
       }
@@ -136,7 +133,7 @@ router.get('/verifyAccount', async (req, res) => {
   user.verificationToken = '';
   user.save();
 
-  res.redirect('/userPage');
+  res.redirect('/login');
 });
 
 router.get('/login', (req, res) => {
