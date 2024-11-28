@@ -1,7 +1,7 @@
+import dotenv from 'dotenv';
 import path from 'path';
 import express, { Express } from 'express';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
@@ -11,6 +11,7 @@ import flash from 'connect-flash';
 import { connectToDB } from './db';
 import indexRouter from './routes/index';
 import authRouter from './routes/auth';
+import { createMailTransporter } from './helpers/mail';
 
 dotenv.config();
 
@@ -44,6 +45,8 @@ app.use(
 );
 app.use(passport.authenticate('session'));
 app.use(flash());
+
+createMailTransporter();
 
 app.use('/', indexRouter);
 app.use('/', authRouter);

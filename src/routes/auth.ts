@@ -3,6 +3,8 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import crypto from 'crypto';
 import { User } from '../db/schemas/User';
+import { sendVerificationEmail } from '../helpers/mail';
+import type { MailOptions } from 'nodemailer/lib/json-transport';
 
 const router = Router();
 
@@ -66,6 +68,7 @@ passport.use(
 );
 
 router.get('/signup', (req, res) => res.render('signup'));
+
 router.post('/signup', (req, res, next) => {
   const salt = crypto.randomBytes(16);
 
@@ -80,18 +83,31 @@ router.post('/signup', (req, res, next) => {
 
       const hashString = hashedPassword.toString('hex');
       const saltString = salt.toString('hex');
+      const verificationToken = crypto.randomBytes(16).toString('hex');
 
       const newUser = new User({
         email: req.body.email,
         salt: saltString,
         hash: hashString,
+        verificationToken,
       });
 
       try {
         await newUser.save();
+
+        const mailOptions = {
+          from: `"Login Test" ${process.env.EMAIL_FROM}`,
+          to: req.body.email,
+          subject: 'Verify your account',
+          text: `Click on the link to verify your account: ${process.env.BASE_URL}/verifyAccount?token=${verificationToken}\n\nIf you believe you received this email by mistake, please ignore it.`,
+          html: `<p>Click on the link below to verify your account:</p><p><a href="${process.env.BASE_URL}/verifyAccount?token=${verificationToken}">Verify your account</a></p><p>If you believe you received this email by mistake, please ignore it.</p>`,
+        } as MailOptions;
+
+        sendVerificationEmail(mailOptions);
+
         req.login(newUser, err => {
           if (err) return next(err);
-          res.redirect('/userPage');
+          res.redirect('/accountCreated');
         });
       } catch (err) {
         return next(err);
@@ -100,10 +116,34 @@ router.post('/signup', (req, res, next) => {
   );
 });
 
+router.get('/accountCreated', (req, res) => {
+  res.render('accountCreated');
+});
+
+router.get('/invalidToken', (req, res) => {
+  res.render('invalidToken');
+});
+
+router.get('/verifyAccount', async (req, res) => {
+  const { token } = req.query;
+  const user = await User.findOne({ verificationToken: token });
+
+  if (!user) {
+    return res.redirect('/invalidToken');
+  }
+
+  user.verified = true;
+  user.verificationToken = '';
+  user.save();
+
+  res.redirect('/userPage');
+});
+
 router.get('/login', (req, res) => {
   console.log(req.flash('message'));
   res.render('login');
 });
+
 router.post(
   '/login/password',
   passport.authenticate('local', {
@@ -113,6 +153,7 @@ router.post(
     failureFlash: true,
   }),
 );
+
 router.post('/logout', (req, res, next) => {
   req.logout(err => {
     if (err) {
@@ -120,29 +161,6 @@ router.post('/logout', (req, res, next) => {
     }
     res.redirect('/');
   });
-});
-router.get('/userPage', async (req, res) => {
-  try {
-    if (!req.user) {
-      return res.redirect('login'); // Redirect if not authenticated
-    }
-
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.redirect('login');
-    }
-
-    return res.render('userPage', {
-      user: { username: user.username, email: user.email },
-    });
-  } catch (err) {
-    console.error('Error fetching user data:', err);
-    return res.redirect('no');
-  }
-});
-router.get('/no', (req, res) => {
-  console.log(req.flash('message'));
-  res.render('no', { message: req.flash('message') });
 });
 
 export default router;

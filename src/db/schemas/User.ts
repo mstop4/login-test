@@ -8,6 +8,8 @@ export interface IUser {
   email: string;
   salt: string;
   hash: string;
+  verificationToken: string;
+  verified: boolean;
 }
 
 declare global {
@@ -34,6 +36,14 @@ const userSchema = new Schema<IUser>({
   hash: {
     type: String,
     required: true,
+  },
+  verificationToken: {
+    type: String,
+  },
+  verified: {
+    type: Boolean,
+    required: true,
+    default: false,
   },
 });
 
