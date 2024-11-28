@@ -7,7 +7,6 @@ declare global {
       SESSION_SECRET?: string;
       LOG_FILE?: string;
       LOG_PATH?: string;
-      LOG_FILENAME?: string;
       LOG_FORMAT?: string;
       LOG_SIZE?: string;
       LOG_INTERVAL?: string;
