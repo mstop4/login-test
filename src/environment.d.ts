@@ -2,8 +2,14 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       PORT?: string;
+      BASE_URL?: string;
       MONGODB_URL?: string;
       SESSION_SECRET?: string;
+      LOG_FILE_ON?: string;
+      LOG_PATH?: string;
+      LOG_FORMAT?: string;
+      LOG_SIZE?: string;
+      LOG_FREQUENCY?: string;
       EMAIL_HOST?: string;
       EMAIL_PORT?: string;
       EMAIL_USER?: string;

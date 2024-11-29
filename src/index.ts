@@ -1,7 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import express, { Express } from 'express';
-import morgan from 'morgan';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
@@ -12,6 +11,7 @@ import { connectToDB } from './db';
 import indexRouter from './routes/index';
 import authRouter from './routes/auth';
 import { createMailTransporter } from './helpers/mail';
+import { setupLogger } from './helpers/logger';
 
 dotenv.config();
 
@@ -21,7 +21,9 @@ const port = process.env.PORT || 3000;
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-app.use(morgan('combined'));
+
+setupLogger(app);
+
 app.use(
   bodyParser.urlencoded({
     limit: '5000mb',
@@ -29,6 +31,7 @@ app.use(
     parameterLimit: 100000000000,
   }),
 );
+
 app.use(cookieParser());
 app.use(passport.initialize());
 
