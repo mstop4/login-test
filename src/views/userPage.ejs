@@ -10,6 +10,11 @@
     <p>Name: <%= user.username %></p>
     <p>Email: <%= user.email %></p>
     <p>Verified Account: <%= user.verified ? "Yes" : "No" %></p>
+    <% if (!user.verified) { %>
+    <form action="/resendVerificationEmail" method="post">
+      <button class="resendEmail" type="submit">Resend Verification Email</button>
+    </form>
+    <% } %>
     <form action="/logout" method="post">
       <button class="logout" type="submit">Log out</button>
     </form>

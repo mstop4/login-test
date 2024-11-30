@@ -3,8 +3,7 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import crypto from 'crypto';
 import { User } from '../db/schemas/User';
-import { sendVerificationEmail } from '../helpers/mail';
-import type { MailOptions } from 'nodemailer/lib/json-transport';
+import { sendVerificationLink } from './authController';
 
 const router = Router();
 
@@ -95,16 +94,11 @@ router.post('/signup', (req, res, next) => {
 
       try {
         await newUser.save();
-
-        const mailOptions = {
-          from: `"Login Test" ${process.env.EMAIL_FROM}`,
-          to: req.body.email,
-          subject: 'Verify your account',
-          text: `Hello ${req.body.username}!\n\nClick on the link to verify your account: ${process.env.BASE_URL}/verifyAccount?token=${verificationToken}\n\nIf you believe you received this email by mistake, please ignore it.`,
-          html: `<p>Hello ${req.body.username}!</p><p>Click on the link below to verify your account:</p><p><a href="${process.env.BASE_URL}/verifyAccount?token=${verificationToken}">Verify your account</a></p><p>If you believe you received this email by mistake, please ignore it.</p>`,
-        } as MailOptions;
-
-        sendVerificationEmail(mailOptions);
+        sendVerificationLink(
+          req.body.email,
+          req.body.username,
+          verificationToken,
+        );
         res.redirect('/accountCreated');
       } catch (err) {
         return next(err);
@@ -113,8 +107,34 @@ router.post('/signup', (req, res, next) => {
   );
 });
 
+router.post('/resendVerificationEmail', async (req, res, next) => {
+  if (!req.user) {
+    return res.redirect('/login');
+  }
+
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    return res.redirect('/no');
+  }
+
+  const verificationToken = crypto.randomBytes(16).toString('hex');
+  user.verificationToken = verificationToken;
+
+  try {
+    await user.save();
+    sendVerificationLink(user.email, user.username, verificationToken);
+    res.redirect('/verificationSent');
+  } catch (err) {
+    return next(err);
+  }
+});
+
 router.get('/accountCreated', (req, res) => {
   res.render('accountCreated');
+});
+
+router.get('/verificationSent', (req, res) => {
+  res.render('verificationSent');
 });
 
 router.get('/invalidToken', (req, res) => {
@@ -133,7 +153,11 @@ router.get('/verifyAccount', async (req, res) => {
   user.verificationToken = '';
   user.save();
 
-  res.redirect('/login');
+  if (req.user) {
+    res.redirect('/userPage');
+  } else {
+    res.redirect('/login');
+  }
 });
 
 router.get('/login', (req, res) => {
