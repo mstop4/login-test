@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from './logger';
 
 export const errorHandler = (
   err: Error,
@@ -6,6 +7,8 @@ export const errorHandler = (
   res: Response,
   next: NextFunction,
 ) => {
+  logger.error(err.message);
+
   if (res.headersSent) {
     return next(err);
   }
