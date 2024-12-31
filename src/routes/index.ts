@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { User } from '../db/schemas/User';
+import { oops } from './indexController';
 
 const router = Router();
 
@@ -31,6 +32,15 @@ router.get('/userPage', async (req, res) => {
 router.get('/no', (req, res) => {
   console.log(req.flash('message'));
   res.render('no', { message: req.flash('message') });
+});
+
+router.get('/error', (req, res, next) => {
+  try {
+    oops();
+    res.json('ok');
+  } catch (err) {
+    next(err);
+  }
 });
 
 export default router;

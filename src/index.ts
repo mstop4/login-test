@@ -12,6 +12,7 @@ import indexRouter from './routes/index';
 import authRouter from './routes/auth';
 import { createMailTransporter } from './helpers/mail';
 import { setupLogger } from './helpers/logger';
+import { errorHandler } from './helpers/errorHandler';
 
 dotenv.config();
 
@@ -53,6 +54,7 @@ createMailTransporter();
 
 app.use('/', indexRouter);
 app.use('/', authRouter);
+app.use(errorHandler);
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
